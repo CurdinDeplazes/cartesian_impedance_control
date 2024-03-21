@@ -16,6 +16,11 @@ cd franka_ros2_ws/src
 git clone https://github.com/CurdinDeplazes/cartesian_impedance_control.git
 ```
 
+Clone the messages package in the src directory <br />
+```bash
+git clone https://github.com/CurdinDeplazes/messages_fr3.git
+```
+
 Build the package or whole workspace  <br />
 ```bash
 colcon build --packages-select cartesian_impedance_control --cmake-args -DCMAKE_BUILD_TYPE=Release
