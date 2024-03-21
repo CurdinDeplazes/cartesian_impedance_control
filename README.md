@@ -20,7 +20,7 @@ colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release #Builds all the packages in
 
 Source your setup
 ```bash
-source install/setup.sh <br />
+source install/setup.sh 
 ```
 
 Launch the controller <br />
