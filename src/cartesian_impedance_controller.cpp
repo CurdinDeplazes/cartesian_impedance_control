@@ -200,7 +200,17 @@ void CartesianImpedanceController::updateJointStates() {
   }
 }
 
-controller_interface::return_type CartesianImpedanceController::update(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/) {      
+controller_interface::return_type CartesianImpedanceController::update(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/) {  
+  // if (outcounter == 0){
+  // std::cout << "Enter 1 if you want to track a desired position or 2 if you want to use free floating with optionally shaped inertia" << std::endl;
+  // std::cin >> mode_;
+  // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  // std::cout << "Mode selected" << std::endl;
+  // while (mode_ != 1 && mode_ != 2){
+  //   std::cout << "Invalid mode, try again" << std::endl;
+  //   std::cin >> mode_;
+  // }
+  // }
   std::array<double, 49> mass = franka_robot_model_->getMassMatrix();
   std::array<double, 7> coriolis_array = franka_robot_model_->getCoriolisForceVector();
   std::array<double, 42> jacobian_array =  franka_robot_model_->getZeroJacobian(franka::Frame::kEndEffector);
@@ -215,10 +225,7 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
                         * Eigen::AngleAxisd(rotation_d_target_[1], Eigen::Vector3d::UnitY())
                         * Eigen::AngleAxisd(rotation_d_target_[2], Eigen::Vector3d::UnitZ());
   updateJointStates(); 
-  //Inertia of the robot
-  Lambda = (jacobian * M.inverse() * jacobian.transpose()).inverse();
 
-  Theta = T * Lambda; 
   
   error.head(3) << position - position_d_;
 
@@ -233,12 +240,26 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
     I_error(i,0) = std::min(std::max(-max_I(i,0),  I_error(i,0)), max_I(i,0)); 
   }
 
-  //Using T = M
-  //F_impedance = -1 * (D * (jacobian * dq_) + K * error /*+ I_error*/);
+  Lambda = (jacobian * M.inverse() * jacobian.transpose()).inverse();
+  // Theta = T*Lambda;
+  // F_impedance = -1*(Lambda * Theta.inverse() - IDENTITY) * F_ext;
+  //Inertia of the robot
+  switch (mode_)
+  {
+  case 1:
+    Theta = Lambda;
+    F_impedance = -1 * (D * (jacobian * dq_) + K * error /*+ I_error*/);
+    break;
 
-  //Using an arbitrary Theta
-  F_impedance = -1*(Lambda * Theta.inverse() - IDENTITY) * F_ext; 
-   // -1 /*Lambda * Theta.inverse()*/ * (K * error + D * (jacobian * dq_)); 
+  case 2:
+    Theta = T*Lambda;
+    F_impedance = -1*(Lambda * Theta.inverse() - IDENTITY) * F_ext;
+    break;
+  
+  default:
+    break;
+  }
+
   F_ext = 0.9 * F_ext + 0.1 * O_F_ext_hat_K_M; //Filtering 
   I_F_error += dt * Sf* (F_contact_des - F_ext);
   F_cmd = Sf*(0.4 * (F_contact_des - F_ext) + 0.9 * I_F_error + 0.9 * F_contact_des);

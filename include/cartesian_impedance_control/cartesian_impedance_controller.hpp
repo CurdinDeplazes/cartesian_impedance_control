@@ -101,7 +101,7 @@ public:
     std::array<double, 7> tau_J_d = {0,0,0,0,0,0,0};
     std::array<double, 6> O_F_ext_hat_K = {0,0,0,0,0,0};
     Eigen::Matrix<double, 7, 1> q_subscribed_M;
-    Eigen::Matrix<double, 7, 1> tau_J_d_M = Eigen::MatrixXd::Zero(7, 1);;
+    Eigen::Matrix<double, 7, 1> tau_J_d_M = Eigen::MatrixXd::Zero(7, 1);
     Eigen::Matrix<double, 6, 1> O_F_ext_hat_K_M = Eigen::MatrixXd::Zero(6,1);
     Eigen::Matrix<double, 7, 1> q_;
     Eigen::Matrix<double, 7, 1> dq_;
@@ -122,19 +122,19 @@ public:
     Eigen::Matrix<double, 6, 6> Lambda = IDENTITY;                                           // operational space mass matrix
     Eigen::Matrix<double, 6, 6> Sm = IDENTITY;                                               // task space selection matrix for positions and rotation
     Eigen::Matrix<double, 6, 6> Sf = Eigen::MatrixXd::Zero(6, 6);                            // task space selection matrix for forces
-    Eigen::Matrix<double, 6, 6> K =  (Eigen::MatrixXd(6,6) << 200,   0,   0,   0,   0,   0,
-                                                                0, 200,   0,   0,   0,   0,
-                                                                0,   0, 200,   0,   0,   0,  // impedance stiffness term
-                                                                0,   0,   0, 50,   0,   0,
-                                                                0,   0,   0,   0, 50,   0,
+    Eigen::Matrix<double, 6, 6> K =  (Eigen::MatrixXd(6,6) << 250,   0,   0,   0,   0,   0,
+                                                                0, 250,   0,   0,   0,   0,
+                                                                0,   0, 250,   0,   0,   0,  // impedance stiffness term
+                                                                0,   0,   0, 130,   0,   0,
+                                                                0,   0,   0,   0, 130,   0,
                                                                 0,   0,   0,   0,   0,  10).finished();
 
-    Eigen::Matrix<double, 6, 6> D =  (Eigen::MatrixXd(6,6) <<  10,   0,   0,   0,   0,   0,
-                                                                0, 90 ,   0,   0,   0,   0,
+    Eigen::Matrix<double, 6, 6> D =  (Eigen::MatrixXd(6,6) <<  35,   0,   0,   0,   0,   0,
+                                                                0,  35,   0,   0,   0,   0,
                                                                 0,   0,  35,   0,   0,   0,  // impedance damping term
-                                                                0,   0,   0,   12,   0,   0,
-                                                                0,   0,   0,   0,   14,   0,
-                                                                0,   0,   0,   0,   0,   8).finished();
+                                                                0,   0,   0,   25,   0,   0,
+                                                                0,   0,   0,   0,   25,   0,
+                                                                0,   0,   0,   0,   0,   6).finished();
 
     // Eigen::Matrix<double, 6, 6> K =  (Eigen::MatrixXd(6,6) << 250,   0,   0,   0,   0,   0,
     //                                                             0, 250,   0,   0,   0,   0,
@@ -150,12 +150,12 @@ public:
     //                                                             0,   0,   0,   0,  18,   0,
     //                                                             0,   0,   0,   0,   0,   9).finished();
     Eigen::Matrix<double, 6, 6> Theta = IDENTITY;
-    Eigen::Matrix<double, 6, 6> T = (Eigen::MatrixXd(6,6) <<       1.5,   0,   0,   0,   0,   0,
-                                                                   0,   1.5,   0,   0,   0,   0,
-                                                                   0,   0,   1,   0,   0,   0,  // Inertia term
-                                                                   0,   0,   0,   1.5,   0,   0,
-                                                                   0,   0,   0,   0,   1.5,   0,
-                                                                   0,   0,   0,   0,   0,   1).finished();                                               // impedance inertia term
+    Eigen::Matrix<double, 6, 6> T = (Eigen::MatrixXd(6,6) <<       1,   0,   0,   0,   0,   0,
+                                                                   0,   1,   0,   0,   0,   0,
+                                                                   0,   0,   2.5,   0,   0,   0,  // Inertia term
+                                                                   0,   0,   0,   1,   0,   0,
+                                                                   0,   0,   0,   0,   1,   0,
+                                                                   0,   0,   0,   0,   0,   2.5).finished();                                               // impedance inertia term
 
     Eigen::Matrix<double, 6, 6> cartesian_stiffness_target_;                                 // impedance damping term
     Eigen::Matrix<double, 6, 6> cartesian_damping_target_;                                   // impedance damping term
@@ -177,7 +177,7 @@ public:
 
     //Logging
     int outcounter = 0;
-    const int update_frequency = 1000; //frequency for update outputs
+    const int update_frequency = 2; //frequency for update outputs
 
     //Integrator
     Eigen::Matrix<double, 6, 1> I_error = Eigen::MatrixXd::Zero(6, 1);                      // pose error (6d)
@@ -197,5 +197,6 @@ public:
 
     //Filter-parameters
     double filter_params_{0.001};
+    int mode_ = 2;
 };
 }  // namespace cartesian_impedance_control
