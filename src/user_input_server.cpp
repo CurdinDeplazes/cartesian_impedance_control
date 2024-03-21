@@ -12,7 +12,7 @@
 namespace cartesian_impedance_control{
 
 void UserInputServer::setPose(const std::shared_ptr<messages_fr3::srv::SetPose::Request> request, 
-    std::shared_ptr<messages_fr3::srv::SetPose::Response> response)
+    std::shared_ptr<messages_fr3::srv::SetPose::Response> /*response*/)
 {
     (*position_d_target_)[0] = request->x;
     (*position_d_target_)[1] = request->y;
@@ -20,11 +20,10 @@ void UserInputServer::setPose(const std::shared_ptr<messages_fr3::srv::SetPose::
     (*rotation_d_target_)[0] = request->roll;
     (*rotation_d_target_)[1] = request->pitch;
     (*rotation_d_target_)[3] = request->yaw;
-    std::cout << "Received request and assigned to target pose" << position_d_target_ << std::endl;
 }
 
 void UserInputServer::setParam(const std::shared_ptr<messages_fr3::srv::SetParam::Request> request, 
-    std::shared_ptr<messages_fr3::srv::SetParam::Response> response)
+    std::shared_ptr<messages_fr3::srv::SetParam::Response> /*response*/)
 {   
     Eigen::VectorXd diag_values_inertia(6);
     diag_values_inertia << request->a, request->b, request->c, request->d, request->e, request->f;
@@ -37,10 +36,8 @@ void UserInputServer::setParam(const std::shared_ptr<messages_fr3::srv::SetParam
 }
 
 
-int UserInputServer::main(int argc, char **argv)
+int UserInputServer::main(int /*argc*/, char** /***argv*/)
 {    
-    std::cout << "Went into main function of UserInputService" << std::endl;
-
     std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("user_input_service");
     rclcpp::Service<messages_fr3::srv::SetPose>::SharedPtr pose_service =
         node->create_service<messages_fr3::srv::SetPose> 
