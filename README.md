@@ -2,28 +2,28 @@
 ROS2 catestian_impedance_controller from PdZ
 
 Prerequesites:
-ROS2 humble
-Libfranka 0.13.0 or newer
-franka_ros2 v0.13.1
+ROS2 humble <br />
+Libfranka 0.13.0 or newer <br />
+franka_ros2 v0.13.1 <br />
 
-Clone this repository in the src directory of your franka_ros2_ws
-```bash cd franka_ros2_ws/src
- git clone ________
+Clone this repository in the src directory of your franka_ros2_ws <br />
+```bash cd franka_ros2_ws/src <br />
+ git clone ________ <br />
 ```
 
-Build the package or whole workspace 
-```bash colcon build --packages-select cartesian_impedance_control --cmake-args -DCMAKE_BUILD_TYPE=Release
-colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release #Builds all the packages in your src folder
+Build the package or whole workspace  <br />
+```bash colcon build --packages-select cartesian_impedance_control --cmake-args -DCMAKE_BUILD_TYPE=Release <br />
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release #Builds all the packages in your src folder <br />
 ```
 
-Source your setup
-```bash source install/setup.sh
+Source your setup <br />
+```bash source install/setup.sh <br />
 ```
 
-Launch the controller 
-```bash ros2 launch cartesian_impeance_control cartesian_impedance_controller.launch.py
+Launch the controller <br />
+```bash ros2 launch cartesian_impeance_control cartesian_impedance_controller.launch.py <br />
 ```
 
-Launch the client if you want to adjust parameters
-``` bash ros2 run cartesian_impedance_control user_input_client
+Launch the client if you want to adjust parameters <br />
+``` bash ros2 run cartesian_impedance_control user_input_client <br />
 ```
