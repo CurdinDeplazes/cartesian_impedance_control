@@ -11,14 +11,18 @@ Clone this repository in the src directory of your franka_ros2_ws
 ``` git clone ________
 
 Build the package or whole workspace 
-``` colcon build --packages-select cartesian_impedance_control --cmake-args -DCMAKE_BUILD_TYPE=Release
-``` colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release #Builds all the packages in your src folder
+```bash colcon build --packages-select cartesian_impedance_control --cmake-args -DCMAKE_BUILD_TYPE=Release
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release #Builds all the packages in your src folder
+```
 
 Source your setup
-``` source install/setup.sh 
+```bash source install/setup.sh
+```
 
 Launch the controller 
-``` ros2 launch cartesian_impeance_control cartesian_impedance_controller.launch.py
+```bash ros2 launch cartesian_impeance_control cartesian_impedance_controller.launch.py
+```
 
 Launch the client if you want to adjust parameters
-``` ros2 run cartesian_impedance_control user_input_client
+``` bash ros2 run cartesian_impedance_control user_input_client
+```
