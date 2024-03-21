@@ -34,7 +34,7 @@ source install/setup.sh
 
 Launch the controller: <br />
 ```bash
-ros2 launch cartesian_impeance_control cartesian_impedance_controller.launch.py
+ros2 launch cartesian_impedance_control cartesian_impedance_controller.launch.py
 ```
 
 Launch the client if you want to adjust parameters: <br />
