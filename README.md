@@ -5,7 +5,10 @@ Prerequesites:
 * ROS2 humble <br />
 * Libfranka 0.13.0 or newer <br />
 * franka_ros2 v0.13.1 <br />
-For further informtaion, please refer to [Franka ROS2 FCI documentation](https://support.franka.de/docs/franka_ros2.html)
+
+For further informtaion, please refer to the [Franka ROS2 FCI documentation](https://support.franka.de/docs/franka_ros2.html)
+
+Once you have everything setup, follow the steps below to get the controller running
 
 Clone this repository in the src directory of your franka_ros2_ws <br />
 ```bash
