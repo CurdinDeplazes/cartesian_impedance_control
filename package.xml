@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>cartesian_impedance_control</name>
+  <version>0.1.8</version>
+  <description>ROS2 version of the PdZ cartesian impedance controller for Franka Emika FR3</description>
+  <maintainer email="cdeplazes@ethz.ch">Curdin Deplazes</maintainer>
+  <license>Apache 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>controller_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>franka_msgs</depend>
+  <depend>franka_semantic_components</depend>
+  <depend>messages_fr3</depend>
+
+
+  <exec_depend>franka_description</exec_depend>
+  <exec_depend>franka_hardware</exec_depend>
+  <exec_depend>franka_robot_state_broadcaster</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
