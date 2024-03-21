@@ -9,7 +9,7 @@ franka_ros2 v0.13.1 <br />
 Clone this repository in the src directory of your franka_ros2_ws <br />
 ```bash
 cd franka_ros2_ws/src 
-git clone ________ 
+git clone https://github.com/CurdinDeplazes/cartesian_impedance_control.git
 ```
 
 Build the package or whole workspace  <br />
