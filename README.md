@@ -7,8 +7,9 @@ Libfranka 0.13.0 or newer
 franka_ros2 v0.13.1
 
 Clone this repository in the src directory of your franka_ros2_ws
-``` cd franka_ros2_ws/src
-``` git clone ________
+```bash cd franka_ros2_ws/src
+ git clone ________
+```
 
 Build the package or whole workspace 
 ```bash colcon build --packages-select cartesian_impedance_control --cmake-args -DCMAKE_BUILD_TYPE=Release
