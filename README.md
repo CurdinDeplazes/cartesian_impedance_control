@@ -1,14 +1,14 @@
 # cartesian_impedance_control
 ### ROS2 catestian_impedance_controller from Pd|Z
 
-Prerequesites:
+Prerequisites:
 * ROS2 humble <br />
 * Libfranka 0.13.0 or newer <br />
 * franka_ros2 v0.13.1 <br />
 
-For further informtaion, please refer to the [Franka ROS2 FCI documentation](https://support.franka.de/docs/franka_ros2.html)
+For further information, please refer to the [Franka ROS2 FCI documentation](https://support.franka.de/docs/franka_ros2.html)
 
-Once you have everything setup, follow the steps below to get the controller running.
+Once you have everything set up, follow the steps below to get the controller running.
 
 Clone this repository in the src directory of your franka_ros2_ws: <br />
 ```bash
@@ -32,7 +32,7 @@ colcon build --packages-select cartesian_impedance_control --cmake-args -DCMAKE_
 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release #Builds all the packages in your src folder
 ```
 
-If not yet done, make sure that your setup is always source by adding the following line to your .bashrc file (to get access to it, you need to execute `nano .bashrc` in your home directory). : <br />
+If not yet done, ensure your setup is always source by adding the following line to your .bashrc file (to get access to it, you need to execute `nano .bashrc` in your home directory). : <br />
 ```bash
 source /home/<user>/franka_ros2_ws/src/install/setup.sh 
 ```
