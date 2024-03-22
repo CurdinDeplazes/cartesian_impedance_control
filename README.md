@@ -15,6 +15,11 @@ Clone this repository in the src directory of your franka_ros2_ws: <br />
 cd franka_ros2_ws/src 
 git clone https://github.com/CurdinDeplazes/cartesian_impedance_control.git
 ```
+For the moment, you need to add the following lines of code, to your controllers.yaml file inside franka_ros2/franka_bringup/config/:
+```bash
+cartesian_impedance_controller:
+      type: cartesian_impedance_control/CartesianImpedanceController
+```
 
 Clone the messages package in the src directory: <br />
 ```bash
@@ -27,9 +32,9 @@ colcon build --packages-select cartesian_impedance_control --cmake-args -DCMAKE_
 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release #Builds all the packages in your src folder
 ```
 
-Source your setup: <br />
+If not yet done, make sure that your setup is always source by adding the following line to your .bashrc file (to get access to it, you need to execute `nano .bashrc` in your home directory). : <br />
 ```bash
-source install/setup.sh 
+source /home/<user>/franka_ros2_ws/src/install/setup.sh 
 ```
 
 Launch the controller: <br />
