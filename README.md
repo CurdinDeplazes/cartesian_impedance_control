@@ -32,7 +32,7 @@ colcon build --packages-select cartesian_impedance_control --cmake-args -DCMAKE_
 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release #Builds all the packages in your src folder
 ```
 
-If not yet done, ensure your setup is always source by adding the following line to your .bashrc file (to get access to it, you need to execute `nano .bashrc` in your home directory). : <br />
+If not yet done, ensure your setup is always source by adding the following line to the end of your .bashrc file (to get access to it, you need to execute `nano .bashrc` in your home directory). : <br />
 ```bash
 source /home/<user>/franka_ros2_ws/src/install/setup.sh 
 ```
