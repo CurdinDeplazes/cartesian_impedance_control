@@ -1,5 +1,5 @@
 # cartesian_impedance_control
-### ROS2 catestian_impedance_controller from Pd|Z
+### ROS2 cartesian_impedance_controller from Pd|Z
 
 Prerequisites:
 * ROS2 humble <br />
