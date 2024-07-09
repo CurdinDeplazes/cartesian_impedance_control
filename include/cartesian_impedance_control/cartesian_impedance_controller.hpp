@@ -26,10 +26,10 @@
 #include <thread>
 #include <chrono>         
 
-#include "cartesian_impedance_control/user_input_server.hpp"
+#include <cartesian_impedance_control/user_input_server.hpp>
 
 #include <rclcpp/rclcpp.hpp>
-#include "rclcpp/subscription.hpp"
+#include <rclcpp/subscription.hpp>
 
 #include <Eigen/Dense>
 #include <Eigen/Eigen>
@@ -40,15 +40,15 @@
 #include <franka/robot.h>
 #include <franka/robot_state.h>
 
-#include "franka_hardware/franka_hardware_interface.hpp"
+#include <franka_hardware/franka_hardware_interface.hpp>
 #include <franka_hardware/model.hpp>
 
-#include "franka_msgs/msg/franka_robot_state.hpp"
-#include "franka_msgs/msg/errors.hpp"
-#include "messages_fr3/srv/set_pose.hpp"
+#include <franka_msgs/msg/franka_robot_state.hpp>
+#include <franka_msgs/msg/errors.hpp>
+#include <messages_fr3/srv/set_pose.hpp>
 
-#include "franka_semantic_components/franka_robot_model.hpp"
-#include "franka_semantic_components/franka_robot_state.hpp"
+#include <franka_semantic_components/franka_robot_model.hpp>
+#include <franka_semantic_components/franka_robot_state.hpp>
 
 #define IDENTITY Eigen::MatrixXd::Identity(6, 6)
 
@@ -110,7 +110,7 @@ public:
     //Robot parameters
     const int num_joints = 7;
     const std::string state_interface_name_{"robot_state"};
-    const std::string robot_name_{"panda"};
+    const std::string arm_id_;
     const std::string k_robot_state_interface_name{"robot_state"};
     const std::string k_robot_model_interface_name{"robot_model"};
     franka_hardware::FrankaHardwareInterface interfaceClass;

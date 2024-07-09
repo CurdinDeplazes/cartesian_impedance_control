@@ -16,6 +16,7 @@ option(CHECK_TIDY "Adds clang-tidy tests" OFF)
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
@@ -46,6 +47,7 @@ ament_target_dependencies(
         hardware_interface
         pluginlib
         rclcpp
+        rclcpp_action
         rclcpp_lifecycle
         franka_semantic_components
         std_msgs

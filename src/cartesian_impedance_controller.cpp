@@ -94,7 +94,7 @@ CartesianImpedanceController::command_interface_configuration() const {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
   for (int i = 1; i <= num_joints; ++i) {
-    config.names.push_back(robot_name_ + "_joint" + std::to_string(i) + "/effort");
+    config.names.push_back(arm_id_ + "_joint" + std::to_string(i) + "/effort");
   }
   return config;
 }
@@ -106,8 +106,8 @@ controller_interface::InterfaceConfiguration CartesianImpedanceController::state
   state_interfaces_config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
 
   for (int i = 1; i <= num_joints; ++i) {
-    state_interfaces_config.names.push_back(robot_name_ + "_joint" + std::to_string(i) + "/position");
-    state_interfaces_config.names.push_back(robot_name_ + "_joint" + std::to_string(i) + "/velocity");
+    state_interfaces_config.names.push_back(arm_id_ + "_joint" + std::to_string(i) + "/position");
+    state_interfaces_config.names.push_back(arm_id_ + "_joint" + std::to_string(i) + "/velocity");
   }
 
   for (const auto& franka_robot_model_name : franka_robot_model_->get_state_interface_names()) {
@@ -115,13 +115,14 @@ controller_interface::InterfaceConfiguration CartesianImpedanceController::state
     std::cout << franka_robot_model_name << std::endl;
   }
 
-  const std::string full_interface_name = robot_name_ + "/" + state_interface_name_;
+  const std::string full_interface_name = arm_id_ + "/" + state_interface_name_;
 
   return state_interfaces_config;
 }
 
 
 CallbackReturn CartesianImpedanceController::on_init() {
+   auto_declare<std::string>("arm_id", "");
    UserInputServer input_server_obj(&position_d_target_, &rotation_d_target_, &K, &D, &T);
    std::thread input_thread(&UserInputServer::main, input_server_obj, 0, nullptr);
    input_thread.detach();
@@ -131,8 +132,8 @@ CallbackReturn CartesianImpedanceController::on_init() {
 
 CallbackReturn CartesianImpedanceController::on_configure(const rclcpp_lifecycle::State& /*previous_state*/) {
   franka_robot_model_ = std::make_unique<franka_semantic_components::FrankaRobotModel>(
-  franka_semantic_components::FrankaRobotModel(robot_name_ + "/" + k_robot_model_interface_name,
-                                               robot_name_ + "/" + k_robot_state_interface_name));
+  franka_semantic_components::FrankaRobotModel(arm_id_ + "/" + k_robot_model_interface_name,
+                                               arm_id_ + "/" + k_robot_state_interface_name));
                                                
   try {
     rclcpp::QoS qos_profile(1); // Depth of the message queue
