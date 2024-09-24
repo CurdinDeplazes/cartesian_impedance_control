@@ -244,12 +244,13 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   // Theta = T*Lambda;
   // F_impedance = -1*(Lambda * Theta.inverse() - IDENTITY) * F_ext;
   //Inertia of the robot
-  switch (mode_)
+  // remove the mode selection
+/*   switch (mode_)
   {
-  case 1:
+  case 1: */
     Theta = Lambda;
     F_impedance = -1 * (D * (jacobian * dq_) + K * error /*+ I_error*/);
-    break;
+/*  break;
 
   case 2:
     Theta = T*Lambda;
@@ -258,7 +259,7 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   
   default:
     break;
-  }
+  } */
 
   F_ext = 0.9 * F_ext + 0.1 * O_F_ext_hat_K_M; //Filtering 
   I_F_error += dt * Sf* (F_contact_des - F_ext);
