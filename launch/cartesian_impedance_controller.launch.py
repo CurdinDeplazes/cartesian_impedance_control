@@ -23,12 +23,14 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     robot_ip_parameter_name = 'robot_ip'
+    arm_id_parameter_name = 'arm_id'
     load_gripper_parameter_name = 'load_gripper'
     use_fake_hardware_parameter_name = 'use_fake_hardware'
     fake_sensor_commands_parameter_name = 'fake_sensor_commands'
     use_rviz_parameter_name = 'use_rviz'
 
     robot_ip = LaunchConfiguration(robot_ip_parameter_name)
+    arm_id = LaunchConfiguration(arm_id_parameter_name)
     load_gripper = LaunchConfiguration(load_gripper_parameter_name)
     use_fake_hardware = LaunchConfiguration(use_fake_hardware_parameter_name)
     fake_sensor_commands = LaunchConfiguration(fake_sensor_commands_parameter_name)
@@ -39,6 +41,10 @@ def generate_launch_description():
             robot_ip_parameter_name,
             default_value='192.168.1.200',
             description='Hostname or IP address of the robot.'),
+        DeclareLaunchArgument(
+            arm_id_parameter_name,
+            default_value='fr3',
+            description='ID of the type of arm used. Supported values: fer, fr3, fp3'),
         DeclareLaunchArgument(
             use_rviz_parameter_name,
             default_value='false',
@@ -62,6 +68,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource([PathJoinSubstitution(
                 [FindPackageShare('franka_bringup'), 'launch', 'franka.launch.py'])]),
             launch_arguments={robot_ip_parameter_name: robot_ip,
+                              arm_id_parameter_name: arm_id,
                               load_gripper_parameter_name: load_gripper,
                               use_fake_hardware_parameter_name: use_fake_hardware,
                               fake_sensor_commands_parameter_name: fake_sensor_commands,
