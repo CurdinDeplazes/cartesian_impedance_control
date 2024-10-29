@@ -96,6 +96,7 @@ public:
     void arrayToMatrix(const std::array<double, 7>& inputArray, Eigen::Matrix<double, 7, 1>& resultMatrix);
     Eigen::Matrix<double, 7, 1> saturateTorqueRate(const Eigen::Matrix<double, 7, 1>& tau_d_calculated, const Eigen::Matrix<double, 7, 1>& tau_J_d);  
     std::array<double, 6> convertToStdArray(const geometry_msgs::msg::WrenchStamped& wrench);
+    
     //State vectors and matrices
     std::array<double, 7> q_subscribed;
     std::array<double, 7> tau_J_d = {0,0,0,0,0,0,0};
@@ -110,6 +111,7 @@ public:
     //Robot parameters
     const int num_joints = 7;
     const std::string state_interface_name_{"robot_state"};
+    //Name here needs to be fr3 and not panda
     const std::string robot_name_{"fr3"};
     const std::string k_robot_state_interface_name{"robot_state"};
     const std::string k_robot_model_interface_name{"robot_model"};
@@ -122,12 +124,12 @@ public:
     Eigen::Matrix<double, 6, 6> Lambda = IDENTITY;                                           // operational space mass matrix
     Eigen::Matrix<double, 6, 6> Sm = IDENTITY;                                               // task space selection matrix for positions and rotation
     Eigen::Matrix<double, 6, 6> Sf = Eigen::MatrixXd::Zero(6, 6);                            // task space selection matrix for forces
-    Eigen::Matrix<double, 6, 6> K =  (Eigen::MatrixXd(6,6) << 250,   0,   0,   0,   0,   0,
-                                                                0, 250,   0,   0,   0,   0,
-                                                                0,   0, 250,   0,   0,   0,  // impedance stiffness term
-                                                                0,   0,   0, 130,   0,   0,
-                                                                0,   0,   0,   0, 130,   0,
-                                                                0,   0,   0,   0,   0,  10).finished();
+    Eigen::Matrix<double, 6, 6> K =  (Eigen::MatrixXd(6,6) << 1500,   0,   0,   0,   0,   0,
+                                                                0, 1500,   0,   0,   0,   0,
+                                                                0,   0, 1500,   0,   0,   0,  // impedance stiffness term
+                                                                0,   0,   0, 100,   0,   0,
+                                                                0,   0,   0,   0, 100,   0,
+                                                                0,   0,   0,   0,   0,  15).finished();
 
     Eigen::Matrix<double, 6, 6> D =  (Eigen::MatrixXd(6,6) <<  35,   0,   0,   0,   0,   0,
                                                                 0,  35,   0,   0,   0,   0,
@@ -197,6 +199,7 @@ public:
 
     //Filter-parameters
     double filter_params_{0.001};
-    int mode_ = 1;
+    // remove the mode selection to always use impedance control
+    //int mode_ = 1;
 };
 }  // namespace cartesian_impedance_control

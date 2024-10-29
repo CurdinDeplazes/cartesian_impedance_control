@@ -39,9 +39,13 @@ void UserInputServer::setParam(const std::shared_ptr<messages_fr3::srv::SetParam
 int UserInputServer::main(int /*argc*/, char** /***argv*/)
 {    
     std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared("user_input_service");
+    
+    // Create the set_pose service
     rclcpp::Service<messages_fr3::srv::SetPose>::SharedPtr pose_service =
         node->create_service<messages_fr3::srv::SetPose> 
         ("set_pose", std::bind(&UserInputServer::setPose, this, std::placeholders::_1, std::placeholders::_2));
+
+    // Create the set_param service    
     rclcpp::Service<messages_fr3::srv::SetParam>::SharedPtr param_service =
         node->create_service<messages_fr3::srv::SetParam> 
         ("set_param", std::bind(&UserInputServer::setParam, this, std::placeholders::_1, std::placeholders::_2));

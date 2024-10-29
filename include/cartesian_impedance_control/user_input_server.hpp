@@ -31,6 +31,7 @@ private:
   Eigen::Matrix<double, 6, 6>* K_;
   Eigen::Matrix<double, 6, 6>* D_;
   Eigen::Matrix<double, 6, 6>* T_;
+  
   //Eigen::VectorXd diag_values_inertia(6);
   void setPose(const std::shared_ptr<messages_fr3::srv::SetPose::Request> request, 
     std::shared_ptr<messages_fr3::srv::SetPose::Response> response);
