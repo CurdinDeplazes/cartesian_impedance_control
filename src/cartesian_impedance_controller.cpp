@@ -235,10 +235,6 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   Eigen::Quaterniond error_quaternion(orientation.inverse() * orientation_d_);
   error.tail(3) << error_quaternion.x(), error_quaternion.y(), error_quaternion.z();
   error.tail(3) << -transform.rotation() * error.tail(3);
-  I_error += Sm * dt * integrator_weights.cwiseProduct(error);
-  for (int i = 0; i < 6; i++){
-    I_error(i,0) = std::min(std::max(-max_I(i,0),  I_error(i,0)), max_I(i,0)); 
-  }
 
   Lambda = (jacobian * M.inverse() * jacobian.transpose()).inverse();
   // Theta = T*Lambda;
@@ -251,7 +247,7 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
     
 
     Theta = Lambda;
-    F_impedance = -1 * (D * (jacobian * dq_) + K * error /*+ I_error*/);
+    F_impedance = -1 * (D * (jacobian * dq_) + K * error );
     // balablalba
 /*  break;
 
