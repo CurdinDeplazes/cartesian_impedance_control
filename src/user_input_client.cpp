@@ -1,7 +1,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <messages_fr3/srv/set_pose.hpp>
 #include <messages_fr3/srv/set_param.hpp>
-#include <messages_fr3/srv/planner_service.hpp>
 
 #include <chrono>
 #include <cstdlib>
@@ -9,30 +8,6 @@
 #include <array>
 #include <cmath>
 
-
-void handle_activate_task(const std::shared_ptr<messages_fr3::srv::PlannerService::Request> request,
-                          std::shared_ptr<messages_fr3::srv::PlannerService::Response> response,
-                          const std::shared_ptr<rclcpp::Node> node,
-                          const rclcpp::Client<messages_fr3::srv::SetParam>::SharedPtr param_client,
-                          const std::shared_ptr<messages_fr3::srv::SetParam::Request> param_request) {
-
-    response->success = true;
-
-    // Send a specific param_request based on the task_selection
-    param_request->a = 1;
-    param_request->b = 1;
-    param_request->c = 0;
-    param_request->d = 1;
-    param_request->e = 1;
-    param_request->f = 1;
-
-    auto param_result = param_client->async_send_request(param_request);
-    if (rclcpp::spin_until_future_complete(node, param_result) == rclcpp::FutureReturnCode::SUCCESS) {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Param request sent successfully: %d", param_result.get()->success);
-    } else {
-        RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service setParam");
-    }
-}
 
 int main(int argc, char **argv) {
     rclcpp::init(argc, argv);
@@ -45,18 +20,6 @@ int main(int argc, char **argv) {
     rclcpp::Client<messages_fr3::srv::SetParam>::SharedPtr param_client =
         node->create_client<messages_fr3::srv::SetParam>("set_param");
     auto param_request = std::make_shared<messages_fr3::srv::SetParam::Request>();
-
-    // if the command "i" is received from the planner node, call the handle_activate_task function
-    auto activate_task_server = node->create_service<messages_fr3::srv::PlannerService>(
-        "command", [&](const std::shared_ptr<messages_fr3::srv::PlannerService::Request> request,
-                       std::shared_ptr<messages_fr3::srv::PlannerService::Response> response) {
-            if (request->command == "i") {
-                handle_activate_task(request, response, node, param_client, param_request);
-            } else {
-                response->success = false;
-                RCLCPP_WARN(rclcpp::get_logger("rclcpp"), "Invalid command received");
-            }
-        });
 
     int task_selection, pose_selection, param_selection;
 

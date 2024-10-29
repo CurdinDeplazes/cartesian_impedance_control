@@ -199,7 +199,8 @@ public:
 
     //Filter-parameters
     double filter_params_{0.001};
-    // remove the mode selection to always use impedance control
-    //int mode_ = 1;
+    
+    // mode selection between impedance control and free floating
+    bool mode_ = false; // false = impedance control, true = free floating
 };
 }  // namespace cartesian_impedance_control

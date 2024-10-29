@@ -122,7 +122,7 @@ controller_interface::InterfaceConfiguration CartesianImpedanceController::state
 
 
 CallbackReturn CartesianImpedanceController::on_init() {
-   UserInputServer input_server_obj(&position_d_target_, &rotation_d_target_, &K, &D, &T);
+   UserInputServer input_server_obj(&position_d_target_, &rotation_d_target_, &K, &D, &T, &mode_);
    std::thread input_thread(&UserInputServer::main, input_server_obj, 0, nullptr);
    input_thread.detach();
    return CallbackReturn::SUCCESS;
@@ -273,7 +273,13 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
                     (2.0 * sqrt(nullspace_stiffness_)) * dq_);  // if config control ) false we don't care about the joint position
 
   tau_impedance = jacobian.transpose() * Sm * (F_impedance /*+ F_repulsion + F_potential*/) + jacobian.transpose() * Sf * F_cmd;
-  auto tau_d_placeholder = tau_impedance + tau_nullspace + coriolis; //add nullspace and coriolis components to desired torque
+  Eigen::VectorXd tau_d_placeholder = tau_impedance + tau_nullspace + coriolis; //add nullspace and coriolis components to desired torque
+  
+  // free floating mode
+  if (mode_) {
+    tau_d_placeholder.setZero();
+  }
+
   tau_d << tau_d_placeholder;
   tau_d << saturateTorqueRate(tau_d, tau_J_d_M);  // Saturate torque rate to avoid discontinuities
   tau_J_d_M = tau_d;
