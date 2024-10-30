@@ -199,8 +199,10 @@ public:
 
     //Filter-parameters
     double filter_params_{0.001};
-    
+
     // mode selection between impedance control and free floating
     bool mode_ = false; // false = impedance control, true = free floating
+
+    bool c_activation_ = false; // controller activation flag
 };
 }  // namespace cartesian_impedance_control

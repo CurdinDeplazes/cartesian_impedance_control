@@ -122,7 +122,7 @@ controller_interface::InterfaceConfiguration CartesianImpedanceController::state
 
 
 CallbackReturn CartesianImpedanceController::on_init() {
-   UserInputServer input_server_obj(&position_d_target_, &rotation_d_target_, &K, &D, &T, &mode_);
+   UserInputServer input_server_obj(&position_d_target_, &rotation_d_target_, &K, &D, &T, &mode_,&c_activation_);
    std::thread input_thread(&UserInputServer::main, input_server_obj, 0, nullptr);
    input_thread.detach();
    return CallbackReturn::SUCCESS;
@@ -224,9 +224,23 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   orientation_d_target_ = Eigen::AngleAxisd(rotation_d_target_[0], Eigen::Vector3d::UnitX())
                         * Eigen::AngleAxisd(rotation_d_target_[1], Eigen::Vector3d::UnitY())
                         * Eigen::AngleAxisd(rotation_d_target_[2], Eigen::Vector3d::UnitZ());
+  
+  // set the desired position and orientation of the end effector if the controller is activated
+  if (c_activation_){
+    orientation_d_target_ = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())
+                        * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitY())
+                        * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ());
+    position_d_ = position;
+    std::cout << "Position_d_target: " << position_d_target_ << std::endl;
+    mode_ = false;
+  }
+
   updateJointStates(); 
 
-  
+  std::cout << "Position: " << position << std::endl;
+  std::cout << "Position_d: " << position_d_ << std::endl;
+  //std::cout << "Position_d_target: " << position_d_target_ << std::endl;
+
   error.head(3) << position - position_d_;
 
   if (orientation_d_.coeffs().dot(orientation.coeffs()) < 0.0) {
@@ -289,7 +303,7 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   }
   
   if (outcounter % 1000/update_frequency == 0){
-    std::cout << "F_ext_robot [N]" << std::endl;
+    /* std::cout << "F_ext_robot [N]" << std::endl;
     std::cout << O_F_ext_hat_K << std::endl;
     std::cout << O_F_ext_hat_K_M << std::endl;
     std::cout << "Lambda  Thetha.inv(): " << std::endl;
@@ -303,7 +317,9 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
     std::cout << "--------" << std::endl;
     std::cout << coriolis << std::endl;
     std::cout << "Inertia scaling [m]: " << std::endl;
-    std::cout << T << std::endl;
+    std::cout << T << std::endl; */
+    std::cout << "Control mode: " << mode_ << std::endl;
+    std::cout << "Position target :" << position_d_target_ << std::endl;
   }
   outcounter++;
   update_stiffness_and_references();
