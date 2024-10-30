@@ -43,6 +43,29 @@ void CartesianImpedanceController::update_stiffness_and_references(){
   nullspace_stiffness_ = filter_params_ * nullspace_stiffness_target_ + (1.0 - filter_params_) * nullspace_stiffness_;
   //std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
   position_d_ = filter_params_ * position_d_target_ + (1.0 - filter_params_) * position_d_;
+  
+  /* if(!mode_){
+    orientation_d_target_ = Eigen::AngleAxisd(rotation_d_target_[0], Eigen::Vector3d::UnitX())
+                        * Eigen::AngleAxisd(rotation_d_target_[1], Eigen::Vector3d::UnitY())
+                        * Eigen::AngleAxisd(rotation_d_target_[2], Eigen::Vector3d::UnitZ());
+  } */
+  
+  
+  std::cout << "Orientation_d_target: " << orientation_d_target_.coeffs() << std::endl;
+  
+  if (c_activation_){
+
+    orientation_d_target_ = Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX())
+                        * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitY())
+                        * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ());
+    
+    std::cout << "Orientation_d_target: " << orientation_d_target_.coeffs() << std::endl;
+    std::cout << "Orientation_d_" << orientation_d_.coeffs() << std::endl;
+
+    mode_ = false;
+
+  }
+
   orientation_d_ = orientation_d_.slerp(filter_params_, orientation_d_target_);
   F_contact_des = 0.05 * F_contact_target + 0.95 * F_contact_des;
 }
@@ -221,25 +244,24 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   Eigen::Affine3d transform(Eigen::Matrix4d::Map(pose.data()));
   Eigen::Vector3d position(transform.translation());
   Eigen::Quaterniond orientation(transform.rotation());
-  orientation_d_target_ = Eigen::AngleAxisd(rotation_d_target_[0], Eigen::Vector3d::UnitX())
+  /* orientation_d_target_ = Eigen::AngleAxisd(rotation_d_target_[0], Eigen::Vector3d::UnitX())
                         * Eigen::AngleAxisd(rotation_d_target_[1], Eigen::Vector3d::UnitY())
-                        * Eigen::AngleAxisd(rotation_d_target_[2], Eigen::Vector3d::UnitZ());
+                        * Eigen::AngleAxisd(rotation_d_target_[2], Eigen::Vector3d::UnitZ()); */
   
-  // set the desired position and orientation of the end effector if the controller is activated
-  if (c_activation_){
-    orientation_d_target_ = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())
-                        * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitY())
-                        * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ());
-    position_d_ = position;
-    std::cout << "Position_d_target: " << position_d_target_ << std::endl;
-    mode_ = false;
-  }
-
   updateJointStates(); 
 
-  std::cout << "Position: " << position << std::endl;
-  std::cout << "Position_d: " << position_d_ << std::endl;
-  //std::cout << "Position_d_target: " << position_d_target_ << std::endl;
+  // in free float mode we do not control the robot but to not have a jump in orientation when reactivated we set the desired orientation to the current one
+  if (mode_){
+    orientation_d_target_ = orientation;
+  } else {
+    orientation_d_target_ = Eigen::AngleAxisd(rotation_d_target_[0], Eigen::Vector3d::UnitX())
+                        * Eigen::AngleAxisd(rotation_d_target_[1], Eigen::Vector3d::UnitY())
+                        * Eigen::AngleAxisd(rotation_d_target_[2], Eigen::Vector3d::UnitZ());
+  }
+
+  if (c_activation_){
+    position_d_ = position;
+  }
 
   error.head(3) << position - position_d_;
 
@@ -318,8 +340,9 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
     std::cout << coriolis << std::endl;
     std::cout << "Inertia scaling [m]: " << std::endl;
     std::cout << T << std::endl; */
-    std::cout << "Control mode: " << mode_ << std::endl;
-    std::cout << "Position target :" << position_d_target_ << std::endl;
+    /* std::cout << "Control mode: " << mode_ << std::endl;
+    std::cout << "Position target :" << position_d_target_ << std::endl; */
+    std::cout << "Stiffness: " << K << std::endl;
   }
   outcounter++;
   update_stiffness_and_references();

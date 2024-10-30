@@ -33,11 +33,16 @@ int main(int argc, char **argv) {
         node->create_client<messages_fr3::srv::ControllerActivation>("controller_activation");
     auto activation_request = std::make_shared<messages_fr3::srv::ControllerActivation::Request>();
 
+    rclcpp::Client<messages_fr3::srv::SetStiffness>::SharedPtr stiffness_client =
+        node->create_client<messages_fr3::srv::SetStiffness>("set_stiffness");
+    auto stiffness_request = std::make_shared<messages_fr3::srv::SetStiffness::Request>();
+
     int task_selection, pose_selection, param_selection, mode_selection, activation_selection;
 
     while (rclcpp::ok()){
 
-        std::cout << "Enter the next task: \n [1] --> Change position \n [2] --> Change impedance parameters \n [3] --> Choose control mode \n [4] --> Drill Position activation" << std::endl;
+        std::cout << "Enter the next task: \n [1] --> Change position \n [2] --> Change impedance parameters \n"
+                << " [3] --> Choose control mode \n [4] --> Drill Position activation \n [5] --> Update Stiffness" << std::endl;
         std:: cin >> task_selection;
         switch (task_selection){
             case 1:{ 
@@ -176,6 +181,45 @@ int main(int argc, char **argv) {
                 }
                 break;
             }
+            case 5: {
+                std::cout << "Set stiffness: \n [1] --> z component zero \n [2] --> default values\n";
+                std::cin >> param_selection;
+                switch(param_selection){
+                    case 1:{
+                        stiffness_request->a = 1500.0;
+                        stiffness_request->b = 1500.0;
+                        stiffness_request->c = 0.0;
+                        stiffness_request->d = 100.0;
+                        stiffness_request->e = 100.0;
+                        stiffness_request->f = 15.0;
+                        break;
+                    }
+                    case 2:{
+                        stiffness_request->a = 1500.0;
+                        stiffness_request->b = 1500.0;
+                        stiffness_request->c = 1500.0;
+                        stiffness_request->d = 100.0;
+                        stiffness_request->e = 100.0;
+                        stiffness_request->f = 15.0;
+                        break;
+                    }
+                    default:{
+                        stiffness_request->a = 1500.0;
+                        stiffness_request->b = 1500.0;
+                        stiffness_request->c = 1500.0;
+                        stiffness_request->d = 100.0;
+                        stiffness_request->e = 100.0;
+                        stiffness_request->f = 15.0;
+                        break;
+                    }
+                }
+                auto stiffness_result = stiffness_client->async_send_request(stiffness_request);
+                if(rclcpp::spin_until_future_complete(node, stiffness_result) ==  rclcpp::FutureReturnCode::SUCCESS){
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Sum: %d", stiffness_result.get()->success);
+                } else {
+                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service setStiffness");
+                } break;
+            } 
             default:{
                 std::cout << "Invalid selection, please try again\n";
                 break;   
