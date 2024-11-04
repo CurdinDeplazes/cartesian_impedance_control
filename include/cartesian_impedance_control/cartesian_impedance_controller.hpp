@@ -110,7 +110,7 @@ public:
     //Robot parameters
     const int num_joints = 7;
     const std::string state_interface_name_{"robot_state"};
-    const std::string robot_name_{"panda"};
+    const std::string robot_name_{"fr3"};
     const std::string k_robot_state_interface_name{"robot_state"};
     const std::string k_robot_model_interface_name{"robot_model"};
     franka_hardware::FrankaHardwareInterface interfaceClass;
