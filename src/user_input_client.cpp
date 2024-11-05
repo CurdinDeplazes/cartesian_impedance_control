@@ -4,6 +4,7 @@
 #include <messages_fr3/srv/set_stiffness.hpp>
 #include <messages_fr3/srv/set_mode.hpp>
 #include <messages_fr3/srv/controller_activation.hpp>
+#include <messages_fr3/srv/planner_service.hpp>
 
 #include <chrono>
 #include <cstdlib>
@@ -37,12 +38,18 @@ int main(int argc, char **argv) {
         node->create_client<messages_fr3::srv::SetStiffness>("set_stiffness");
     auto stiffness_request = std::make_shared<messages_fr3::srv::SetStiffness::Request>();
 
-    int task_selection, pose_selection, param_selection, mode_selection, activation_selection;
+    rclcpp::Client<messages_fr3::srv::PlannerService>::SharedPtr planner_client =
+        node->create_client<messages_fr3::srv::PlannerService>("planner_service");
+    auto planner_request = std::make_shared<messages_fr3::srv::PlannerService::Request>();
+
+    int task_selection, pose_selection, param_selection, mode_selection, activation_selection, planner_selection;
+   
 
     while (rclcpp::ok()){
 
         std::cout << "Enter the next task: \n [1] --> Change position \n [2] --> Change impedance parameters \n"
-                << " [3] --> Choose control mode \n [4] --> Drill Position activation \n [5] --> Update Stiffness" << std::endl;
+                << " [3] --> Choose control mode \n [4] --> Drill Position activation \n [5] --> Update Stiffness \n" 
+                << " [6] Logging " << std::endl;
         std:: cin >> task_selection;
         switch (task_selection){
             case 1:{ 
@@ -186,29 +193,29 @@ int main(int argc, char **argv) {
                 std::cin >> param_selection;
                 switch(param_selection){
                     case 1:{
-                        stiffness_request->a = 1500.0;
-                        stiffness_request->b = 1500.0;
+                        stiffness_request->a = 2500.0;
+                        stiffness_request->b = 2500.0;
                         stiffness_request->c = 0.0;
-                        stiffness_request->d = 100.0;
-                        stiffness_request->e = 100.0;
+                        stiffness_request->d = 70.0;
+                        stiffness_request->e = 70.0;
                         stiffness_request->f = 15.0;
                         break;
                     }
                     case 2:{
-                        stiffness_request->a = 1500.0;
-                        stiffness_request->b = 1500.0;
-                        stiffness_request->c = 1500.0;
-                        stiffness_request->d = 100.0;
-                        stiffness_request->e = 100.0;
+                        stiffness_request->a = 2000.0;
+                        stiffness_request->b = 2000.0;
+                        stiffness_request->c = 2000.0;
+                        stiffness_request->d = 70.0;
+                        stiffness_request->e = 70.0;
                         stiffness_request->f = 15.0;
                         break;
                     }
                     default:{
-                        stiffness_request->a = 1500.0;
-                        stiffness_request->b = 1500.0;
-                        stiffness_request->c = 1500.0;
-                        stiffness_request->d = 100.0;
-                        stiffness_request->e = 100.0;
+                        stiffness_request->a = 2000.0;
+                        stiffness_request->b = 2000.0;
+                        stiffness_request->c = 2000.0;
+                        stiffness_request->d = 70.0;
+                        stiffness_request->e = 70.0;
                         stiffness_request->f = 15.0;
                         break;
                     }
@@ -219,7 +226,31 @@ int main(int argc, char **argv) {
                 } else {
                     RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service setStiffness");
                 } break;
-            } 
+            }
+            case 6:{
+                std::cout << "Activate logging: \n [1] --> Activate \n [2] --> Deactivate\n";
+                std::cin >> planner_selection;
+                switch(planner_selection){
+                    case 1:{
+                        planner_request->command = "a";
+                        break;
+                    }
+                    case 2:{
+                        planner_request->command = "d";
+                        break;
+                    }
+                    default:{
+                        planner_request->command = "d";
+                        break;
+                    }           
+                }
+                auto planner_result = planner_client->async_send_request(planner_request);
+                if(rclcpp::spin_until_future_complete(node, planner_result) ==  rclcpp::FutureReturnCode::SUCCESS){
+                    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Sum: %d", planner_result.get()->success);
+                } else {
+                    RCLCPP_ERROR(rclcpp::get_logger("rclcpp"), "Failed to call service plannerService");
+                } break;
+            }
             default:{
                 std::cout << "Invalid selection, please try again\n";
                 break;   

@@ -46,6 +46,7 @@
 #include "franka_msgs/msg/franka_robot_state.hpp"
 #include "franka_msgs/msg/errors.hpp"
 #include "messages_fr3/srv/set_pose.hpp"
+#include "messages_fr3/msg/jacobian_ee.hpp"
 
 #include "franka_semantic_components/franka_robot_model.hpp"
 #include "franka_semantic_components/franka_robot_state.hpp"
@@ -86,14 +87,17 @@ public:
     //Nodes
     rclcpp::Subscription<franka_msgs::msg::FrankaRobotState>::SharedPtr franka_state_subscriber = nullptr;
     rclcpp::Service<messages_fr3::srv::SetPose>::SharedPtr pose_srv_;
+    rclcpp::Publisher<messages_fr3::msg::JacobianEE>::SharedPtr jacobian_ee_publisher_; 
 
 
     //Functions
     void topic_callback(const std::shared_ptr<franka_msgs::msg::FrankaRobotState> msg);
     void updateJointStates();
     void update_stiffness_and_references();
+    void publishJacobianEE(const std::array<double, 42>& jacobian_EE, const std::array<double, 42>& jacobian_EE_derivative);
     void arrayToMatrix(const std::array<double, 6>& inputArray, Eigen::Matrix<double, 6, 1>& resultMatrix);
     void arrayToMatrix(const std::array<double, 7>& inputArray, Eigen::Matrix<double, 7, 1>& resultMatrix);
+    void calculate_accel_pose(double delta_time, double z_position);
     Eigen::Matrix<double, 7, 1> saturateTorqueRate(const Eigen::Matrix<double, 7, 1>& tau_d_calculated, const Eigen::Matrix<double, 7, 1>& tau_J_d);  
     std::array<double, 6> convertToStdArray(const geometry_msgs::msg::WrenchStamped& wrench);
     
@@ -124,11 +128,11 @@ public:
     Eigen::Matrix<double, 6, 6> Lambda = IDENTITY;                                           // operational space mass matrix
     Eigen::Matrix<double, 6, 6> Sm = IDENTITY;                                               // task space selection matrix for positions and rotation
     Eigen::Matrix<double, 6, 6> Sf = Eigen::MatrixXd::Zero(6, 6);                            // task space selection matrix for forces
-    Eigen::Matrix<double, 6, 6> K =  (Eigen::MatrixXd(6,6) << 1500,   0,   0,   0,   0,   0,
-                                                                0, 1500,   0,   0,   0,   0,
-                                                                0,   0, 1500,   0,   0,   0,  // impedance stiffness term
-                                                                0,   0,   0, 100,   0,   0,
-                                                                0,   0,   0,   0, 100,   0,
+    Eigen::Matrix<double, 6, 6> K =  (Eigen::MatrixXd(6,6) << 2000,   0,   0,   0,   0,   0,
+                                                                0, 2000,   0,   0,   0,   0,
+                                                                0,   0, 2000,   0,   0,   0,  // impedance stiffness term
+                                                                0,   0,   0, 70,   0,   0,
+                                                                0,   0,   0,   0, 70,   0,
                                                                 0,   0,   0,   0,   0,  15).finished();
 
     Eigen::Matrix<double, 6, 6> D =  (Eigen::MatrixXd(6,6) <<  35,   0,   0,   0,   0,   0,
@@ -176,6 +180,17 @@ public:
     Eigen::Matrix<double, 6, 1> error;                                                       // pose error (6d)
     double nullspace_stiffness_{0.001};
     double nullspace_stiffness_target_{0.001};
+    // Previous values for z position, velocity, and acceleration
+    double previous_z_position_ = 0.0;
+    double previous_z_velocity_ = 0.0;
+    double previous_z_acceleration_ = 0.0;
+    double z_acceleration = 0.0;
+    double z_velocity = 0.0;
+
+    double alpha = 0.0;
+    double time_constant = 0.0;
+    bool ramping_active_ = false;
+    double target_stiffness_z_ = 8000;
 
     //Logging
     int outcounter = 0;
@@ -204,5 +219,7 @@ public:
     bool mode_ = false; // false = impedance control, true = free floating
 
     bool c_activation_ = false; // controller activation flag
+
+    int accel_mode_ = 0; // acceleration calculation mode flag
 };
 }  // namespace cartesian_impedance_control

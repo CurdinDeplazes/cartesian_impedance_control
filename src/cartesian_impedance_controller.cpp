@@ -44,23 +44,11 @@ void CartesianImpedanceController::update_stiffness_and_references(){
   //std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
   position_d_ = filter_params_ * position_d_target_ + (1.0 - filter_params_) * position_d_;
   
-  /* if(!mode_){
-    orientation_d_target_ = Eigen::AngleAxisd(rotation_d_target_[0], Eigen::Vector3d::UnitX())
-                        * Eigen::AngleAxisd(rotation_d_target_[1], Eigen::Vector3d::UnitY())
-                        * Eigen::AngleAxisd(rotation_d_target_[2], Eigen::Vector3d::UnitZ());
-  } */
-  
-  
-  std::cout << "Orientation_d_target: " << orientation_d_target_.coeffs() << std::endl;
-  
   if (c_activation_){
 
     orientation_d_target_ = Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX())
                         * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitY())
                         * Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ());
-    
-    std::cout << "Orientation_d_target: " << orientation_d_target_.coeffs() << std::endl;
-    std::cout << "Orientation_d_" << orientation_d_.coeffs() << std::endl;
 
     mode_ = false;
 
@@ -171,6 +159,8 @@ CallbackReturn CartesianImpedanceController::on_configure(const rclcpp_lifecycle
     return CallbackReturn::ERROR;
     }
 
+  // Initialize publisher here
+  jacobian_ee_publisher_ = get_node()->create_publisher<messages_fr3::msg::JacobianEE>("jacobian_ee", 10);
 
   RCLCPP_DEBUG(get_node()->get_logger(), "configured successfully");
   return CallbackReturn::SUCCESS;
@@ -223,7 +213,36 @@ void CartesianImpedanceController::updateJointStates() {
   }
 }
 
-controller_interface::return_type CartesianImpedanceController::update(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/) {  
+void CartesianImpedanceController::publishJacobianEE(const std::array<double, 42>& jacobian_EE, const std::array<double, 42>& jacobian_EE_derivative) {
+    messages_fr3::msg::JacobianEE jacobian_ee_msg;
+  
+    // Assign the arrays directly to the message fields
+    jacobian_ee_msg.jacobianee = jacobian_EE;
+    jacobian_ee_msg.dtjacobianee = jacobian_EE_derivative;
+  
+    // Publish the combined message
+    jacobian_ee_publisher_->publish(jacobian_ee_msg);
+}
+
+void CartesianImpedanceController::calculate_accel_pose(double delta_time, double z_position) {
+    // Calculate the velocity
+    z_velocity = (z_position - previous_z_position_) / delta_time;
+
+    // Low-pass filter the velocity
+    z_velocity = 0.1 * z_velocity + 0.9 * previous_z_velocity_;
+
+    // Calculate acceleration before updating `previous_z_velocity_`
+    z_acceleration = (z_velocity - previous_z_velocity_) / delta_time;
+
+    // Low-pass filter the acceleration
+    z_acceleration = 0.1 * z_acceleration + 0.9 * previous_z_acceleration_;
+
+    // Update previous velocity and acceleration for the next iteration
+    previous_z_velocity_ = z_velocity;
+    previous_z_acceleration_ = z_acceleration;
+}
+
+controller_interface::return_type CartesianImpedanceController::update(const rclcpp::Time& /*time*/, const rclcpp::Duration& period) {  
   // if (outcounter == 0){
   // std::cout << "Enter 1 if you want to track a desired position or 2 if you want to use free floating with optionally shaped inertia" << std::endl;
   // std::cin >> mode_;
@@ -234,9 +253,11 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   //   std::cin >> mode_;
   // }
   // }
+
   std::array<double, 49> mass = franka_robot_model_->getMassMatrix();
   std::array<double, 7> coriolis_array = franka_robot_model_->getCoriolisForceVector();
   std::array<double, 42> jacobian_array =  franka_robot_model_->getZeroJacobian(franka::Frame::kEndEffector);
+  std::array<double, 42> jacobian_array_EE =  franka_robot_model_->getBodyJacobian(franka::Frame::kEndEffector);
   std::array<double, 16> pose = franka_robot_model_->getPoseMatrix(franka::Frame::kEndEffector);
   Eigen::Map<Eigen::Matrix<double, 7, 1>> coriolis(coriolis_array.data());
   Eigen::Map<Eigen::Matrix<double, 6, 7>> jacobian(jacobian_array.data());
@@ -244,11 +265,60 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   Eigen::Affine3d transform(Eigen::Matrix4d::Map(pose.data()));
   Eigen::Vector3d position(transform.translation());
   Eigen::Quaterniond orientation(transform.rotation());
-  /* orientation_d_target_ = Eigen::AngleAxisd(rotation_d_target_[0], Eigen::Vector3d::UnitX())
-                        * Eigen::AngleAxisd(rotation_d_target_[1], Eigen::Vector3d::UnitY())
-                        * Eigen::AngleAxisd(rotation_d_target_[2], Eigen::Vector3d::UnitZ()); */
   
+  double z_position = position.z();
+  double previous_z_position = z_position;
+
+  // Static variable to hold the previous Jacobian for derivative calculation
+  static std::array<double, 42> previous_jacobian_EE = jacobian_array_EE;
+
+  // Calculate the Jacobian derivative using finite differences
+  std::array<double, 42> jacobian_EE_derivative;
+  double delta_time = 0.001; // Use the actual update period
+
+  for (size_t i = 0; i < jacobian_array_EE.size(); ++i) {
+      jacobian_EE_derivative[i] = (jacobian_array_EE[i] - previous_jacobian_EE[i]) / delta_time;
+  }
+  
+  // Update previous Jacobian for next iteration
+  previous_jacobian_EE = jacobian_array_EE;
+
+  // Publish the JacobianEE message
+  //publishJacobianEE(jacobian_array_EE, jacobian_EE_derivative);
+
   updateJointStates(); 
+
+  
+/*   switch (accel_mode_)
+  {
+    // calculate the desired acceleration over the pose
+  case 0: */
+  // Calculate the acceleration over the z position
+  calculate_accel_pose(delta_time, z_position);
+
+  // Update previous z position for the next iteration
+  previous_z_position_ = z_position;
+
+
+  if (abs(z_acceleration) > 1.0 && c_activation_) {
+    // Start the ramping process if the condition is met
+    ramping_active_ = true;
+  }
+
+  if (ramping_active_) {
+      time_constant = 0.05; // Adjust this to control the response speed
+      alpha = 1.0 - exp(-period.seconds() / time_constant);
+      
+      // Gradually increase K.diagonal()[2] towards the target value
+      K.diagonal()[2] = alpha * target_stiffness_z_ + (1.0 - alpha) * K.diagonal()[2];
+
+      // Stop ramping once we reach the target value
+      if (K.diagonal()[2] >= target_stiffness_z_) {
+          K.diagonal()[2] = target_stiffness_z_;
+          ramping_active_ = false;  // Disable ramping once target is reached
+          K.diagonal()[2] = 0; // Reset the value to 0
+      }
+  }
 
   // in free float mode we do not control the robot but to not have a jump in orientation when reactivated we set the desired orientation to the current one
   if (mode_){
@@ -281,6 +351,8 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   {
   case 1: */
     
+    // correcting D to be critically damped
+    D =  2.05* K.cwiseSqrt() * Lambda.diagonal().cwiseSqrt().asDiagonal();
 
     Theta = Lambda;
     F_impedance = -1 * (D * (jacobian * dq_) + K * error );
@@ -342,7 +414,8 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
     std::cout << T << std::endl; */
     /* std::cout << "Control mode: " << mode_ << std::endl;
     std::cout << "Position target :" << position_d_target_ << std::endl; */
-    std::cout << "Stiffness: " << K << std::endl;
+    std::cout << "Stiffness:\n " << K << std::endl;
+    std::cout << "z_acceleration:\n " << z_acceleration << std::endl;
   }
   outcounter++;
   update_stiffness_and_references();
