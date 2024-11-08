@@ -189,34 +189,34 @@ int main(int argc, char **argv) {
                 break;
             }
             case 5: {
-                std::cout << "Set stiffness: \n [1] --> z component zero \n [2] --> default values\n";
+                std::cout << "Set stiffness: \n [1] --> adjust z component \n [2] --> default values\n";
                 std::cin >> param_selection;
                 switch(param_selection){
                     case 1:{
                         stiffness_request->a = 2500.0;
                         stiffness_request->b = 2500.0;
                         stiffness_request->c = 0.0;
-                        stiffness_request->d = 70.0;
-                        stiffness_request->e = 70.0;
-                        stiffness_request->f = 15.0;
+                        stiffness_request->d = 100.0;
+                        stiffness_request->e = 100.0;
+                        stiffness_request->f = 20.0;
                         break;
                     }
                     case 2:{
                         stiffness_request->a = 2000.0;
                         stiffness_request->b = 2000.0;
                         stiffness_request->c = 2000.0;
-                        stiffness_request->d = 70.0;
-                        stiffness_request->e = 70.0;
-                        stiffness_request->f = 15.0;
+                        stiffness_request->d = 100.0;
+                        stiffness_request->e = 100.0;
+                        stiffness_request->f = 20.0;
                         break;
                     }
                     default:{
                         stiffness_request->a = 2000.0;
                         stiffness_request->b = 2000.0;
                         stiffness_request->c = 2000.0;
-                        stiffness_request->d = 70.0;
-                        stiffness_request->e = 70.0;
-                        stiffness_request->f = 15.0;
+                        stiffness_request->d = 100.0;
+                        stiffness_request->e = 100.0;
+                        stiffness_request->f = 20.0;
                         break;
                     }
                 }

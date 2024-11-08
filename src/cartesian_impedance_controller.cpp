@@ -300,23 +300,34 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   previous_z_position_ = z_position;
 
 
-  if (abs(z_acceleration) > 1.0 && c_activation_) {
+  if (abs(z_acceleration) > 1.0 && c_activation_ && accel_trigger == false) {
     // Start the ramping process if the condition is met
     ramping_active_ = true;
+    position_set_ = true;
+    position_accel_lim = position;
+    accel_trigger = true;
   }
 
   if (ramping_active_) {
-      time_constant = 0.05; // Adjust this to control the response speed
+      time_constant = 0.1; // Adjust this to control the response speed
       alpha = 1.0 - exp(-period.seconds() / time_constant);
       
       // Gradually increase K.diagonal()[2] towards the target value
       K.diagonal()[2] = alpha * target_stiffness_z_ + (1.0 - alpha) * K.diagonal()[2];
 
+      elapsed_time += period.seconds();
+
       // Stop ramping once we reach the target value
       if (K.diagonal()[2] >= target_stiffness_z_) {
           K.diagonal()[2] = target_stiffness_z_;
-          ramping_active_ = false;  // Disable ramping once target is reached
-          K.diagonal()[2] = 0; // Reset the value to 0
+      }
+
+      if (elapsed_time > 5.0) {
+        // Reset the ramping process after 5 seconds
+        ramping_active_ = false;
+        accel_trigger = false;
+        elapsed_time = 0.0;
+        K.diagonal()[2] = 0.0;
       }
   }
 
@@ -329,8 +340,15 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
                         * Eigen::AngleAxisd(rotation_d_target_[2], Eigen::Vector3d::UnitZ());
   }
 
+  
+
+
   if (c_activation_){
     position_d_ = position;
+    if (position_set_){
+      position_d_ = position_accel_lim;
+      D_gain = 2.05;
+    }
   }
 
   error.head(3) << position - position_d_;
@@ -352,17 +370,22 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   case 1: */
     
     // correcting D to be critically damped
-    D =  2.05* K.cwiseSqrt() * Lambda.diagonal().cwiseSqrt().asDiagonal();
+  D =  D_gain* K.cwiseSqrt() * Lambda.diagonal().cwiseSqrt().asDiagonal();
+  
+  // when not in drilling mode we use the damoing term to be critically damped and dependant on K
+  if (c_activation_) {
+    D.diagonal()[2] = 30;
+  
+  }
 
-    Theta = Lambda;
-    F_impedance = -1 * (D * (jacobian * dq_) + K * error );
+  F_impedance = -1 * (D * (jacobian * dq_) + K * error );
     // balablalba
-/*  break;
+ /* break;
 
-  case 2:
-    Theta = T*Lambda;
-    F_impedance = -1*(Lambda * Theta.inverse() - IDENTITY) * F_ext;
-    break;
+  case 2: */
+    //Theta = T*Lambda;
+    //F_impedance = -1*(Lambda * Theta.inverse() - IDENTITY) * F_ext;
+ /*    break;
   
   default:
     break;
@@ -397,10 +420,10 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
   }
   
   if (outcounter % 1000/update_frequency == 0){
-    /* std::cout << "F_ext_robot [N]" << std::endl;
+    /* std::cout << "F_ext_robot [N]" << std::endl;*/
     std::cout << O_F_ext_hat_K << std::endl;
     std::cout << O_F_ext_hat_K_M << std::endl;
-    std::cout << "Lambda  Thetha.inv(): " << std::endl;
+    /*std::cout << "Lambda  Thetha.inv(): " << std::endl;
     std::cout << Lambda*Theta.inverse() << std::endl;
     std::cout << "tau_d" << std::endl;
     std::cout << tau_d << std::endl;
@@ -409,13 +432,15 @@ controller_interface::return_type CartesianImpedanceController::update(const rcl
     std::cout << "--------" << std::endl;
     std::cout << tau_impedance << std::endl;
     std::cout << "--------" << std::endl;
-    std::cout << coriolis << std::endl;
-    std::cout << "Inertia scaling [m]: " << std::endl;
-    std::cout << T << std::endl; */
-    /* std::cout << "Control mode: " << mode_ << std::endl;
-    std::cout << "Position target :" << position_d_target_ << std::endl; */
+    std::cout << coriolis << std::endl;*/
+    /* std::cout << "Inertia scaling:\n " << std::endl;
+    std::cout << T << std::endl;
+    std::cout << "Lambda:\n" << Lambda << std::endl; */
+    std::cout << "Control mode: " << mode_ << std::endl;
+    /* std::cout << "Position target :" << position_d_target_ << std::endl; */
     std::cout << "Stiffness:\n " << K << std::endl;
     std::cout << "z_acceleration:\n " << z_acceleration << std::endl;
+    std::cout << "elapsed_time:\n " << elapsed_time << std::endl;
   }
   outcounter++;
   update_stiffness_and_references();
